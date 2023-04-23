@@ -4,6 +4,7 @@ import { EmailService } from './email.service';
 import { RmqModule } from '@app/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { EMAIL_SERVICE } from 'apps/users/src/constants/services';
 
 @Module({
   imports: [
@@ -14,7 +15,9 @@ import * as Joi from 'joi';
         RABBITMQ_EMAIL_QUEUE: Joi.string().required(),
       }),
     }),
-    RmqModule,
+    RmqModule.register({
+      name: EMAIL_SERVICE,
+    }),
   ],
   controllers: [EmailController],
   providers: [EmailService],

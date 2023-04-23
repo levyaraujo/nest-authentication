@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { UserCreatedResponse } from '../api/dto/responses.dto';
+import { User } from 'apps/users/src/schemas/user.schema';
 
 @Injectable()
 export class ImageService {
@@ -41,5 +43,17 @@ export class ImageService {
 
     const base64 = this.getBase64EncodedImage(imageData);
     return { base64, filename };
+  }
+
+  async createUserAvatar(avatar: Express.Multer.File, user: User) {
+    if (avatar) {
+      const { base64, filename } = this.downloadImage(avatar);
+      const avatarObject = {
+        user: user.id,
+        base64: base64,
+        filename: filename,
+      };
+      return avatarObject;
+    }
   }
 }

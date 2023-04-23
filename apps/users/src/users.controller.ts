@@ -14,8 +14,8 @@ import {
 import { UsersService } from './users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IncomingUserDto } from './dto/user.dto';
-import { IdDto } from './dto/id.dto';
-import { SuccessResponseDto } from './dto/success-response.dto';
+import { Response } from 'express';
+import { GetUserResponse, UserCreatedResponse } from '@app/common';
 
 @Controller('api/')
 export class UsersController {
@@ -36,18 +36,18 @@ export class UsersController {
         }),
     )
     avatar: Express.Multer.File,
-  ): Promise<SuccessResponseDto> {
+  ): Promise<UserCreatedResponse> {
     return this.usersService.createUser(user, avatar);
   }
 
   @Get('user/:id')
-  async getUser(@Param('id') id: string) {
+  async getUser(@Param('id') id: string): Promise<GetUserResponse> {
     return this.usersService.getUser(id);
   }
 
   @Get('user/:id/avatar')
-  async getUserAvatar(@Param('id') id: IdDto) {
-    return this.usersService.getUserAvatar(id);
+  async getUserAvatar(@Param('id') id: string, @Res() res: Response) {
+    return this.usersService.getUserAvatar(id, res);
   }
 
   @Delete('user/:id/avatar')

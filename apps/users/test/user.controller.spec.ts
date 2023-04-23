@@ -20,7 +20,6 @@ describe('UsersController', () => {
     userService = moduleRef.get<UsersService>(UsersService);
     usersController = moduleRef.get<UsersController>(UsersController);
     jest.clearAllMocks();
-    // await deleteFolder('./images');
   });
 
   describe('createUser', () => {
@@ -34,8 +33,11 @@ describe('UsersController', () => {
 
     it('should return expectedResult', async () => {
       const expectedResult = {
-        message: 'User created successfully',
-        status: 201,
+        firstName: 'Spider',
+        lastName: 'Man',
+        email: 'spider.man@marvel.com',
+        id: 977,
+        createdAt: new Date('2023-04-22T21:44:28.557Z'),
       };
       jest.spyOn(userService, 'createUser').mockResolvedValue(expectedResult);
       const filePath = `${process.cwd()}/apps/users/test/images/spiderman.jpg`;
@@ -66,12 +68,11 @@ describe('UsersController', () => {
           url: 'https://reqres.in/#support-heading',
           text: 'To keep ReqRes free, contributions towards server costs are appreciated!',
         },
-        status: 200,
       };
       jest.spyOn(userService, 'getUser').mockResolvedValue(response);
 
       const result = await usersController.getUser(id);
-      expect(result.status).toEqual(response.status);
+      expect(result).toEqual(response);
     });
   });
 
@@ -83,7 +84,7 @@ describe('UsersController', () => {
     });
 
     it('should return user not found', async () => {
-      const id = '6442ced69308c8ece62c7fdf';
+      const id = '251';
       const response = {
         message: 'User not found',
         status: 404,

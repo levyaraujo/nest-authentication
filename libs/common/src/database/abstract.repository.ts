@@ -40,6 +40,16 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     return document;
   }
 
+  async findById(filterQuery: FilterQuery<TDocument>): Promise<TDocument> {
+    const document = await this.model.findById(filterQuery, {}, { lean: true });
+
+    if (!document) {
+      return null;
+    }
+
+    return document;
+  }
+
   async userExists(filterQuery: FilterQuery<TDocument>): Promise<boolean> {
     const document = await this.model.findOne(filterQuery, {}, { lean: true });
     if (!document) {
@@ -78,6 +88,11 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   async find(filterQuery: FilterQuery<TDocument>) {
     return this.model.find(filterQuery, {}, { lean: true });
+  }
+
+  async deleteOne(filterQuery: FilterQuery<TDocument>) {
+    const document = await this.model.deleteOne(filterQuery);
+    return document;
   }
 
   async startTransaction() {

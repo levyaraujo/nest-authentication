@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
-import { rmqDto } from 'apps/users/src/dto/rabbitmq-user.dto';
+import { rmqMessageDto } from './dto/message.dto';
 
 @Controller()
 export class EmailController {
@@ -9,7 +9,7 @@ export class EmailController {
 
   @EventPattern('user-created')
   async handleUserSendEmail(
-    @Payload() data: rmqDto,
+    @Payload() data: rmqMessageDto,
     @Ctx() context: RmqContext,
   ) {
     console.log('data', data);

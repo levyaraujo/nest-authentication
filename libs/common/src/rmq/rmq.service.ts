@@ -1,10 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RmqOptions, Transport } from '@nestjs/microservices';
+import { ClientProxy, RmqOptions, Transport } from '@nestjs/microservices';
+import { EMAIL_SERVICE } from './constants/services';
+import { rmqDto } from 'apps/users/src/dto/rabbitmq-user.dto';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class RabbitMQService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(EMAIL_SERVICE) private emailClient: ClientProxy,
+  ) {}
 
   getOptions(queue: string, noAck = false): RmqOptions {
     return {
@@ -16,5 +22,13 @@ export class RabbitMQService {
         persistent: true,
       },
     };
+  }
+
+  async sendRabbitMQMessage(email: string, firstName: string): Promise<void> {
+    const message: rmqDto = {
+      userEmail: email,
+      firstName: firstName,
+    };
+    await lastValueFrom(this.emailClient.emit('user-created', message));
   }
 }

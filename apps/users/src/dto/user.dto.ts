@@ -1,11 +1,4 @@
-import {
-  IsBase64,
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  IsUUID,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class IncomingUserDto {
   @IsString()
@@ -21,21 +14,4 @@ export class IncomingUserDto {
   email: string;
 
   avatar: Express.Multer.File;
-}
-
-export class UserDto {
-  @IsString()
-  firstName: string;
-
-  @IsString()
-  lastName: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsBase64()
-  avatar: string;
-
-  @IsUUID()
-  avatarFileName: string;
 }
