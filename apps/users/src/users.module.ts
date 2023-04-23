@@ -7,7 +7,6 @@ import {
   DatabaseModule,
   ImageModule,
   ImageService,
-  RabbitMQService,
   RmqModule,
 } from '@app/common';
 import * as Joi from 'joi';
@@ -16,8 +15,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { EMAIL_SERVICE } from './constants/services';
 import { HttpModule } from '@nestjs/axios';
-import { AvatarRepository } from './avatar.repository';
-import { Avatar, AvatarSchema } from './schemas/avatar.schema';
 
 @Module({
   imports: [
@@ -33,10 +30,7 @@ import { Avatar, AvatarSchema } from './schemas/avatar.schema';
       ],
     }),
     DatabaseModule,
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Avatar.name, schema: AvatarSchema },
-    ]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     RmqModule.register({
       name: EMAIL_SERVICE,
     }),
@@ -44,13 +38,6 @@ import { Avatar, AvatarSchema } from './schemas/avatar.schema';
     HttpModule,
   ],
   controllers: [UsersController],
-  providers: [
-    UsersService,
-    UsersRepository,
-    AvatarRepository,
-    ImageService,
-    RabbitMQService,
-    ApiService,
-  ],
+  providers: [UsersService, UsersRepository, ImageService, ApiService],
 })
 export class UsersModule {}

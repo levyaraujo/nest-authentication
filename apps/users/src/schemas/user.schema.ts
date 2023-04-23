@@ -17,6 +17,12 @@ export class User extends AbstractDocument {
 
   @Prop()
   createdAt: Date;
+
+  @Prop()
+  avatarBase64: string;
+
+  @Prop()
+  avatarFileName: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  Res,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, Res } from '@nestjs/common';
 import { IncomingUserDto } from './dto/user.dto';
 import { UsersRepository } from './users.repository';
 import { User } from './schemas/user.schema';
@@ -17,48 +12,43 @@ import {
   RabbitMQService,
   UserAlreadyExistsException,
   UserCreatedResponse,
+  UserNotFoundException,
 } from '@app/common';
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
-import { AvatarRepository } from './avatar.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly imageService: ImageService,
     private readonly usersRepository: UsersRepository,
-    private readonly avatarRepository: AvatarRepository,
     private readonly apiService: ApiService,
-    private rabbitService: RabbitMQService,
+    private readonly rabbitService: RabbitMQService,
   ) {}
+
+  private logger = new Logger(UsersService.name);
 
   async createUser(
     incomingUserDto: IncomingUserDto,
     avatar: Express.Multer.File,
   ): Promise<UserCreatedResponse> {
     await this.checkUserExistsByEmail(incomingUserDto.email);
-    try {
-      const apiResponse = await this.createUserApi(incomingUserDto);
-      const user = await this.usersRepository.create(apiResponse);
-      const createdAvatar = await this.imageService.createUserAvatar(
-        avatar,
-        user,
-      );
-      await this.avatarRepository.create(createdAvatar);
-      const { email, firstName } = incomingUserDto;
-      await this.rabbitService.sendRabbitMQMessage(email, firstName);
-      return apiResponse;
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException({
-        message: `Internal server error ${error}`,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      });
-    }
-  }
-
-  async createUserApi(user: IncomingUserDto): Promise<UserCreatedResponse> {
-    return this.apiService.create(user);
+    const { firstName, lastName, email } = incomingUserDto;
+    const apiResponse = await this.apiService.create({
+      firstName,
+      lastName,
+      email,
+    });
+    this.logger.log(apiResponse);
+    const { base64, filename } = await this.imageService.saveUserAvatar(avatar);
+    const userObject = {
+      ...apiResponse,
+      avatarBase64: base64,
+      avatarFileName: filename,
+    };
+    await this.usersRepository.create(userObject);
+    await this.rabbitService.sendRabbitMQMessage(email, firstName);
+    return apiResponse;
   }
 
   async checkUserExistsByEmail(email: string): Promise<void> {
@@ -74,35 +64,54 @@ export class UsersService {
 
   async getUser(id: string): Promise<GetUserResponse> {
     const data = this.apiService.get(id);
-    console.log(await data);
     if (data) {
       return data;
     }
   }
 
-  async getUserAvatar(id: string, @Res() res: Response): Promise<void> {
-    const avatar = await this.avatarRepository.findOne({ user: id });
+  async getUserAvatar(
+    id: string,
+    @Res() res: Response,
+  ): Promise<SuccessResponseDto> {
+    const user = await this.usersRepository.findOne({ id: id });
 
-    if (!avatar) {
-      throw new AvatarNotFound();
+    if (!user) {
+      throw new UserNotFoundException();
     }
 
-    const imageBuffer = Buffer.from(avatar.base64, 'base64');
+    if (!user.avatarBase64) {
+      throw new AvatarNotFound();
+    }
+    const base64Image = user.avatarBase64;
+
+    const imageBuffer = Buffer.from(base64Image, 'base64');
     res.set('Content-Type', 'image/png');
     res.send(imageBuffer);
+
+    return {
+      message: 'User avatar retrieved successfully',
+      status: HttpStatus.OK,
+    };
   }
 
   async deleteUserAvatar(id: string): Promise<SuccessResponseDto> {
-    const avatar = await this.avatarRepository.findOne({ user: id });
-    if (!avatar) {
+    const user = await this.usersRepository.findOne({ id: id });
+
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
+    if (!user.avatarBase64) {
       throw new AvatarNotFound();
     }
 
-    const fileName = avatar.filename;
-    const path = `${IMAGE_FOLDER}/${fileName}`;
+    const path = `${IMAGE_FOLDER}/${user.avatarFileName}`;
     fs.unlinkSync(path);
 
-    await this.avatarRepository.deleteOne({ user: id });
+    await this.usersRepository.findOneAndUpdate(
+      { id: id },
+      { avatarFilename: null, avatarBase64: null },
+    );
 
     return {
       message: 'User avatar deleted successfully',

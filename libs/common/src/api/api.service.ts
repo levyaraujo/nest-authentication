@@ -1,8 +1,12 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  PayloadTooLargeException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { GetUserResponse, UserCreatedResponse } from './dto/responses.dto';
-import { UserNotFoundException } from '../CustomExceptions/notFound';
+import { UserNotFoundException } from '../exceptions/notFound';
 import { AxiosError } from 'axios';
 
 @Injectable()
@@ -19,16 +23,20 @@ export class ApiService {
       }
       throw new InternalServerErrorException();
     });
-
     return response.data;
   }
 
   async create(body: any): Promise<UserCreatedResponse> {
     const response = await lastValueFrom(
       this.httpService.post(this.apiURL, body),
-    );
-    if (response.status === 201) {
-      return response.data;
-    }
+    ).catch((error: AxiosError) => {
+      if (error.response.status === 413) {
+        throw new PayloadTooLargeException();
+      }
+      console.log(`An error occurred: ${error}`);
+      throw new InternalServerErrorException();
+    });
+    console.log(response.data);
+    return response.data;
   }
 }
