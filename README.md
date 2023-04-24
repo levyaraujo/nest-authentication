@@ -30,7 +30,7 @@ Unit tests for this API can be run by executing the command `yarn test` or `npm 
 
 ## Test the API directly in Postman 👨‍🚀:
 
-### ☡ In order to test in localhost, you need to download the [Postman Desktop](https://www.postman.com/downloads/)
+### In order to test in localhost, you need to download the [Postman Desktop](https://www.postman.com/downloads/)
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/21871412-042ac7c0-808f-4083-9a58-888312934b0c?action=collection%2Ffork&collection-url=entityId%3D21871412-042ac7c0-808f-4083-9a58-888312934b0c%26entityType%3Dcollection%26workspaceId%3D7a8add9c-433f-4f74-b742-a40dcf74d7d1)
 
