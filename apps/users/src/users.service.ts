@@ -17,7 +17,7 @@ import {
   ImageService,
   RabbitMQService,
   UserAlreadyExistsException,
-  UserCreatedResponse,
+  UserCreatedDTO,
 } from '@app/common';
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
@@ -36,35 +36,36 @@ export class UsersService {
   private logger = new Logger(UsersService.name);
 
   async createUser(
-    incomingUserDto: IncomingUserDto,
+    newUser: IncomingUserDto,
     avatar: Express.Multer.File,
-  ): Promise<UserCreatedResponse> {
-    await this.checkUserExistsByEmail(incomingUserDto.email);
-    const { firstName, lastName, email } = incomingUserDto;
-    const apiResponse = await this.apiService.post({
+  ): Promise<UserCreatedDTO> {
+    await this.checkUserExistsByEmail(newUser.email);
+    const { firstName, lastName, email } = newUser;
+    const userResponse: UserCreatedDTO = await this.apiService.post({
       firstName,
       lastName,
       email,
     });
     try {
-      const { base64, filename } = await this.imageService.saveUserAvatar(
-        avatar,
-      );
-      const userObject = {
-        ...apiResponse,
-      };
-      await this.usersRepository.create(userObject);
+      const avatarData = await this.saveUserAvatar(avatar);
+      await this.usersRepository.create({ ...userResponse });
       await this.avatarRepository.create({
-        user: apiResponse.id,
-        base64,
-        filename,
+        user: userResponse.id,
+        ...avatarData,
       });
       await this.rabbitService.sendRabbitMQMessage(email, firstName);
-      return apiResponse;
+      return userResponse;
     } catch (err) {
       this.logger.error(err);
       throw new InternalServerErrorException();
     }
+  }
+
+  private async saveUserAvatar(
+    avatar: Express.Multer.File,
+  ): Promise<{ base64: string; filename: string }> {
+    const { base64, filename } = await this.imageService.saveUserAvatar(avatar);
+    return { base64, filename };
   }
 
   async checkUserExistsByEmail(email: string): Promise<void> {

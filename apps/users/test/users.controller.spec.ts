@@ -36,7 +36,7 @@ describe('UsersController', () => {
   let mongod: MongoMemoryServer;
   let mongoConnection: Connection;
   let userModel: Model<User>;
-  // let avatarModel = Model<Avatar>;
+  let avatarModel = Model<Avatar>;
   const user = userStub();
 
   beforeAll(async () => {
@@ -46,7 +46,7 @@ describe('UsersController', () => {
     process.env['PORT'] = uri.split(':')[1];
     mongoConnection = (await connect(uri)).connection;
     userModel = mongoConnection.model<User>(User.name, UserSchema);
-    // avatarModel = mongoConnection.model<Avatar>(Avatar.name, AvatarSchema);
+    avatarModel = mongoConnection.model<Avatar>(Avatar.name, AvatarSchema);
     const app: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
@@ -71,7 +71,7 @@ describe('UsersController', () => {
       providers: [
         UsersService,
         { provide: getModelToken(User.name), useValue: userModel },
-        { provide: getModelToken(User.name), useValue: userModel },
+        { provide: getModelToken(Avatar.name), useValue: avatarModel },
         {
           provide: RabbitMQService,
           useValue: { sendRabbitMQMessage: jest.fn() },

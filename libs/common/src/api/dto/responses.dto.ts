@@ -2,14 +2,13 @@ import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEmail,
-  IsInt,
   IsNumber,
   IsString,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
 
-export class UserCreatedResponse {
+export class UserCreatedDTO {
   @IsString()
   firstName: string;
 

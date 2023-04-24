@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
   HttpStatus,
   Param,
   ParseFilePipeBuilder,
@@ -16,7 +15,7 @@ import { UsersService } from './users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IncomingUserDto } from './dto/user.dto';
 import { Response } from 'express';
-import { GetUserResponse, UserCreatedResponse } from '@app/common';
+import { GetUserResponse, UserCreatedDTO } from '@app/common';
 
 @Controller('api/')
 export class UsersController {
@@ -37,7 +36,7 @@ export class UsersController {
         }),
     )
     avatar: Express.Multer.File,
-  ): Promise<UserCreatedResponse> {
+  ): Promise<UserCreatedDTO> {
     return this.usersService.createUser(user, avatar);
   }
 

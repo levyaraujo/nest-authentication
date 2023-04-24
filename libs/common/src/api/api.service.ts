@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import { GetUserResponse, UserCreatedResponse } from './dto/responses.dto';
+import { GetUserResponse, UserCreatedDTO } from './dto/responses.dto';
 import { UserNotFoundException } from '../exceptions/notFound';
 import { AxiosError } from 'axios';
 
@@ -28,7 +28,7 @@ export class ApiService {
     return response.data;
   }
 
-  async post(body: any): Promise<UserCreatedResponse> {
+  async post(body: any): Promise<UserCreatedDTO> {
     const response = await lastValueFrom(
       this.httpService.post(this.apiURL, body),
     ).catch((error: AxiosError) => {
