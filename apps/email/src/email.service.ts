@@ -27,7 +27,7 @@ export class EmailService {
         subject: 'Account created',
         text: `Hello, ${data.firstName}! Your account has been created successfully!`,
         messageId: crypto
-          .createHash('sha256')
+          .createHash('md5')
           .update(data.userEmail)
           .digest('hex'),
       });

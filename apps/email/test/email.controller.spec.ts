@@ -36,20 +36,7 @@ describe('EmailController', () => {
       userEmail: 'lev0x79@gmail.com',
     };
     const hashedEmail = crypto
-      .createHash('sha256')
-      .update(data.userEmail)
-      .digest('hex');
-    const sentMessage = await emailController.handleUserSendEmail(data);
-    expect(sentMessage.messageId).toBe(hashedEmail);
-  });
-
-  it('should fail', async () => {
-    const data: incomingMessageDto = {
-      firstName: 'Levy',
-      userEmail: 'lev0x79@gmail.com',
-    };
-    const hashedEmail = crypto
-      .createHash('sha256')
+      .createHash('md5')
       .update(data.userEmail)
       .digest('hex');
     const sentMessage = await emailController.handleUserSendEmail(data);
