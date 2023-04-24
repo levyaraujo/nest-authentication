@@ -2,8 +2,8 @@
   "name": "register-app",
   "version": "0.0.1",
   "description": "",
-  "author": "",
-  "private": true,
+  "author": "Levy <lev0x79@gmail.com>",
+  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
@@ -91,5 +91,7 @@
     "moduleNameMapper": {
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1"
     }
-  }
+  },
+  "main": "index.js",
+  "repository": "git@github.com:levyaraujo/payever-test.git"
 }
