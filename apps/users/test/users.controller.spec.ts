@@ -8,6 +8,7 @@ import { userStub } from './stubs/user.stub';
 import { UsersService } from '../src/users.service';
 import {
   ApiService,
+  AvatarNotFoundException,
   DatabaseModule,
   EMAIL_SERVICE,
   ImageModule,
@@ -28,12 +29,14 @@ import {
   getUserAvatarResponse,
 } from './stubs/apiResponses';
 import { createResponse } from 'node-mocks-http';
+import { AvatarRepository } from '../src/avatar.repository';
 
 describe('UsersController', () => {
   let usersController: UsersController;
   let mongod: MongoMemoryServer;
   let mongoConnection: Connection;
   let userModel: Model<User>;
+  // let avatarModel = Model<Avatar>;
   const user = userStub();
 
   beforeAll(async () => {
@@ -43,6 +46,7 @@ describe('UsersController', () => {
     process.env['PORT'] = uri.split(':')[1];
     mongoConnection = (await connect(uri)).connection;
     userModel = mongoConnection.model<User>(User.name, UserSchema);
+    // avatarModel = mongoConnection.model<Avatar>(Avatar.name, AvatarSchema);
     const app: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
@@ -67,11 +71,13 @@ describe('UsersController', () => {
       providers: [
         UsersService,
         { provide: getModelToken(User.name), useValue: userModel },
+        { provide: getModelToken(User.name), useValue: userModel },
         {
           provide: RabbitMQService,
           useValue: { sendRabbitMQMessage: jest.fn() },
         },
         UsersRepository,
+        AvatarRepository,
         ApiService,
         ImageService,
       ],
@@ -129,11 +135,11 @@ describe('UsersController', () => {
       expect(retrievedAvatar).toEqual(getUserAvatarResponse);
     });
 
-    it('should throw a UserNotFoundException', async () => {
+    it('should throw a AvatarNotFoundException', async () => {
       const response = createResponse();
       await expect(
         usersController.getUserAvatar('1', response),
-      ).rejects.toThrow(UserNotFoundException);
+      ).rejects.toThrow(AvatarNotFoundException);
     });
   });
 
@@ -145,9 +151,9 @@ describe('UsersController', () => {
       expect(retrievedAvatar).toEqual(deleteUserAvatarResponse);
     });
 
-    it('should throw a UserNotFoundException', async () => {
+    it('should throw a AvatarNotFoundException', async () => {
       await expect(usersController.deleteUserAvatar('1')).rejects.toThrow(
-        UserNotFoundException,
+        AvatarNotFoundException,
       );
     });
   });

@@ -15,6 +15,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { EMAIL_SERVICE } from './constants/services';
 import { HttpModule } from '@nestjs/axios';
+import { Avatar, AvatarSchema } from './schemas/avatar.schema';
+import { AvatarRepository } from './avatar.repository';
 
 @Module({
   imports: [
@@ -24,13 +26,11 @@ import { HttpModule } from '@nestjs/axios';
         MONGODB_URI: Joi.string().required(),
         PORT: Joi.number().required(),
       }),
-      envFilePath: [
-        `${process.cwd()}/libs/common/src/config/${process.env.NODE_ENV}.env`,
-        './apps/users/.env',
-      ],
+      envFilePath: ['.env'],
     }),
     DatabaseModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: Avatar.name, schema: AvatarSchema }]),
     RmqModule.register({
       name: EMAIL_SERVICE,
     }),
@@ -38,6 +38,12 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository, ImageService, ApiService],
+  providers: [
+    UsersService,
+    UsersRepository,
+    AvatarRepository,
+    ImageService,
+    ApiService,
+  ],
 })
 export class UsersModule {}

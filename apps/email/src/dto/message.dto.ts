@@ -1,6 +1,6 @@
 import { IsEmail, IsString } from 'class-validator';
 
-export class rmqMessageDto {
+export class incomingMessageDto {
   @IsEmail()
   userEmail: string;
 

@@ -1,21 +1,6 @@
 version: '3'
 
 services:
-  users:
-    container_name: user_service
-    build:
-      context: .
-      dockerfile: ./apps/users/Dockerfile
-      target: build
-    command: npm run start users
-    depends_on:
-      - db
-    volumes:
-      - .:/app
-      - /app/node_modules
-    ports:
-      - 3000:3000
-    
   email:
     container_name: email_service
     build:
@@ -25,6 +10,7 @@ services:
     command: npm run start email
     depends_on:
       - db
+      - rabbitmq
     volumes:
       - .:/app
       - /app/node_modules
@@ -46,3 +32,21 @@ services:
     restart: always
     ports:
       - 27017:27017
+
+  users:
+    container_name: user_service
+    build:
+      context: .
+      dockerfile: ./apps/users/Dockerfile
+      target: build
+    command: npm run start users
+    depends_on:
+      - db
+      - email
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 3000:3000
+    

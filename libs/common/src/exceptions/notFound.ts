@@ -6,7 +6,7 @@ export class UserNotFoundException extends HttpException {
   }
 }
 
-export class AvatarNotFound extends HttpException {
+export class AvatarNotFoundException extends HttpException {
   constructor() {
     super('User avatar not found.', HttpStatus.NOT_FOUND);
   }

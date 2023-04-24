@@ -1,4 +1,10 @@
-import { HttpStatus, Injectable, Logger, Res } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  Res,
+} from '@nestjs/common';
 import { IncomingUserDto } from './dto/user.dto';
 import { UsersRepository } from './users.repository';
 import { User } from './schemas/user.schema';
@@ -6,16 +12,16 @@ import { IMAGE_FOLDER } from './constants/paths';
 import * as fs from 'fs';
 import {
   ApiService,
-  AvatarNotFound,
+  AvatarNotFoundException,
   GetUserResponse,
   ImageService,
   RabbitMQService,
   UserAlreadyExistsException,
   UserCreatedResponse,
-  UserNotFoundException,
 } from '@app/common';
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
+import { AvatarRepository } from './avatar.repository';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +30,7 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly apiService: ApiService,
     private readonly rabbitService: RabbitMQService,
+    private readonly avatarRepository: AvatarRepository,
   ) {}
 
   private logger = new Logger(UsersService.name);
@@ -34,21 +41,30 @@ export class UsersService {
   ): Promise<UserCreatedResponse> {
     await this.checkUserExistsByEmail(incomingUserDto.email);
     const { firstName, lastName, email } = incomingUserDto;
-    const apiResponse = await this.apiService.create({
+    const apiResponse = await this.apiService.post({
       firstName,
       lastName,
       email,
     });
-    this.logger.log(apiResponse);
-    const { base64, filename } = await this.imageService.saveUserAvatar(avatar);
-    const userObject = {
-      ...apiResponse,
-      avatarBase64: base64,
-      avatarFileName: filename,
-    };
-    await this.usersRepository.create(userObject);
-    await this.rabbitService.sendRabbitMQMessage(email, firstName);
-    return apiResponse;
+    try {
+      const { base64, filename } = await this.imageService.saveUserAvatar(
+        avatar,
+      );
+      const userObject = {
+        ...apiResponse,
+      };
+      await this.usersRepository.create(userObject);
+      await this.avatarRepository.create({
+        user: apiResponse.id,
+        base64,
+        filename,
+      });
+      await this.rabbitService.sendRabbitMQMessage(email, firstName);
+      return apiResponse;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException();
+    }
   }
 
   async checkUserExistsByEmail(email: string): Promise<void> {
@@ -73,16 +89,12 @@ export class UsersService {
     id: string,
     @Res() res: Response,
   ): Promise<SuccessResponseDto> {
-    const user = await this.usersRepository.findOne({ id: id });
+    const avatar = await this.avatarRepository.findOne({ user: id });
 
-    if (!user) {
-      throw new UserNotFoundException();
+    if (!avatar) {
+      throw new AvatarNotFoundException();
     }
-
-    if (!user.avatarBase64) {
-      throw new AvatarNotFound();
-    }
-    const base64Image = user.avatarBase64;
+    const base64Image = avatar.base64;
 
     const imageBuffer = Buffer.from(base64Image, 'base64');
     res.set('Content-Type', 'image/png');
@@ -95,23 +107,16 @@ export class UsersService {
   }
 
   async deleteUserAvatar(id: string): Promise<SuccessResponseDto> {
-    const user = await this.usersRepository.findOne({ id: id });
+    const avatar = await this.avatarRepository.findOne({ user: id });
 
-    if (!user) {
-      throw new UserNotFoundException();
+    if (!avatar) {
+      throw new AvatarNotFoundException();
     }
 
-    if (!user.avatarBase64) {
-      throw new AvatarNotFound();
-    }
-
-    const path = `${IMAGE_FOLDER}/${user.avatarFileName}`;
+    const path = `${IMAGE_FOLDER}/${avatar.filename}`;
     fs.unlinkSync(path);
 
-    await this.usersRepository.findOneAndUpdate(
-      { id: id },
-      { avatarFilename: null, avatarBase64: null },
-    );
+    await this.avatarRepository.deleteOne({ user: id });
 
     return {
       message: 'User avatar deleted successfully',
