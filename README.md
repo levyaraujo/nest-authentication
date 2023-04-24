@@ -18,12 +18,14 @@ To get started with the API, follow these steps:
 
 ### Docker 🐳
 
-1.  Open a terminal window and navigate to the project directory.
-2.  Run `docker compose up` to start the server and all the required services (RabbitMQ, MongoDB and Email microservice).
+1. Clone this repository or [download](https://github.com/levyaraujo/payever-test/archive/refs/heads/main.zip) the zip file;
+2. Unzip the file;
+3. Open a terminal window and navigate to the project directory;
+4. Run `docker compose up` to start the server and all the required services (RabbitMQ, MongoDB and Email microservice).
 
 ## Run the tests 🧪
 
-Unit tests for this API can be run by executing the command yarn test. These tests are performed using Jest and cover the API's basic functionality.
+Unit tests for this API can be run by executing the command `yarn test`. These tests are performed using Jest and cover the API's basic functionality.
 
 ## Test the API directly in Postman 👨‍🚀:
 
