@@ -1,4 +1,5 @@
 import {
+  Header,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
@@ -98,7 +99,6 @@ export class UsersService {
       },
     });
 
-    res.set('Content-Type', 'image/png');
     imageStream.pipe(res);
 
     return {
