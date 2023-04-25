@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Avatar } from 'apps/users/src/schemas/avatar.schema';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -47,6 +49,21 @@ export class ImageService {
     if (avatar) {
       const { base64, filename } = this.downloadImage(avatar);
       return { base64, filename };
+    }
+  }
+
+  async createImageStream(avatar: Avatar): Promise<Readable> {
+    try {
+      const base64Image = avatar.base64;
+      const imageStream = new Readable({
+        read() {
+          this.push(Buffer.from(base64Image, 'base64'));
+          this.push(null);
+        },
+      });
+      return imageStream;
+    } catch (err) {
+      throw new InternalServerErrorException(err);
     }
   }
 }

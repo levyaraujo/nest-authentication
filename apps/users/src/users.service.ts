@@ -22,6 +22,7 @@ import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
 import { AvatarRepository } from './avatar.repository';
 import { Readable } from 'stream';
+import { Avatar } from './schemas/avatar.schema';
 
 @Injectable()
 export class UsersService {
@@ -80,26 +81,21 @@ export class UsersService {
     }
   }
 
+  async getAvatar(id: string): Promise<Avatar> {
+    const avatar = await this.avatarRepository.findOne({ user: id });
+    if (!avatar) {
+      throw new AvatarNotFoundException();
+    }
+    return avatar;
+  }
+
   async getUserAvatar(
     id: string,
     @Res() res: Response,
   ): Promise<SuccessResponseDto> {
-    const avatar = await this.avatarRepository.findOne({ user: id });
-
-    if (!avatar) {
-      throw new AvatarNotFoundException();
-    }
-
-    const base64Image = avatar.base64;
-    const imageStream = new Readable({
-      read() {
-        this.push(Buffer.from(base64Image, 'base64'));
-        this.push(null);
-      },
-    });
-
+    const avatar = await this.getAvatar(id);
+    const imageStream = await this.imageService.createImageStream(avatar);
     imageStream.pipe(res);
-
     return {
       message: 'User avatar retrieved successfully',
       status: HttpStatus.OK,
