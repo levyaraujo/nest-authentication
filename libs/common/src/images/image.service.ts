@@ -45,7 +45,8 @@ export class ImageService {
 
   async saveUserAvatar(avatar: Express.Multer.File) {
     if (avatar) {
-      return this.downloadImage(avatar);
+      const { base64, filename } = this.downloadImage(avatar);
+      return { base64, filename };
     }
   }
 }

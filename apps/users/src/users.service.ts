@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { IncomingUserDto } from './dto/user.dto';
 import { UsersRepository } from './users.repository';
-import { User } from './schemas/user.schema';
 import { IMAGE_FOLDER } from './constants/paths';
 import * as fs from 'fs';
 import {
@@ -28,9 +27,9 @@ export class UsersService {
   constructor(
     private readonly imageService: ImageService,
     private readonly usersRepository: UsersRepository,
+    private readonly avatarRepository: AvatarRepository,
     private readonly apiService: ApiService,
     private readonly rabbitService: RabbitMQService,
-    private readonly avatarRepository: AvatarRepository,
   ) {}
 
   private logger = new Logger(UsersService.name);
@@ -47,36 +46,30 @@ export class UsersService {
       email,
     });
     try {
-      const avatarData = await this.saveUserAvatar(avatar);
-      await this.usersRepository.create({ ...userResponse });
-      await this.avatarRepository.create({
-        user: userResponse.id,
-        ...avatarData,
-      });
+      const avatarData = await this.imageService.saveUserAvatar(avatar);
+      await this.saveUserAndAvatar(userResponse, avatarData);
       await this.rabbitService.sendRabbitMQMessage(email, firstName);
       return userResponse;
     } catch (err) {
       this.logger.error(err);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(err);
     }
   }
 
-  private async saveUserAvatar(
-    avatar: Express.Multer.File,
-  ): Promise<{ base64: string; filename: string }> {
-    const { base64, filename } = await this.imageService.saveUserAvatar(avatar);
-    return { base64, filename };
+  private async saveUserAndAvatar(
+    user: UserCreatedDTO,
+    avatarData: { base64: string; filename: string },
+  ): Promise<void> {
+    const userObject = { ...user };
+    await this.usersRepository.create(userObject);
+    await this.avatarRepository.create({ user: user.id, ...avatarData });
   }
 
-  async checkUserExistsByEmail(email: string): Promise<void> {
+  private async checkUserExistsByEmail(email: string): Promise<void> {
     const user = await this.usersRepository.findOne({ email });
     if (user) {
       throw new UserAlreadyExistsException();
     }
-  }
-
-  async findUserByEmail(email: User['email']): Promise<User | null> {
-    return await this.usersRepository.findOne({ email });
   }
 
   async getUser(id: string): Promise<GetUserResponse> {
