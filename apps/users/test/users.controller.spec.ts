@@ -14,7 +14,7 @@ import {
   ImageModule,
   ImageService,
   RabbitMQService,
-  RmqModule,
+  RabbitMQModule,
   UserNotFoundException,
 } from '@app/common';
 import { ConfigModule } from '@nestjs/config';
@@ -61,7 +61,7 @@ describe('UsersController', () => {
           { name: User.name, schema: UserSchema },
           { name: Avatar.name, schema: AvatarSchema },
         ]),
-        RmqModule.register({
+        RabbitMQModule.register({
           name: EMAIL_SERVICE,
         }),
         ImageModule,

@@ -24,10 +24,13 @@ export class RabbitMQService {
     };
   }
 
-  async sendRabbitMQMessage(email: string, firstName: string): Promise<void> {
+  async sendRabbitMQMessage(
+    userEmail: string,
+    firstName: string,
+  ): Promise<void> {
     const message: rmqDto = {
-      userEmail: email,
-      firstName: firstName,
+      userEmail,
+      firstName,
     };
     await lastValueFrom(this.emailClient.emit('user-created', message));
   }

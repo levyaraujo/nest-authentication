@@ -21,7 +21,6 @@ import {
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
 import { AvatarRepository } from './avatar.repository';
-import { Readable } from 'stream';
 import { Avatar } from './schemas/avatar.schema';
 
 @Injectable()

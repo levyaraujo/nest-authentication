@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RabbitMQService } from './rmq.service';
+import { RabbitMQService } from './rabbitmq.service';
 
 interface RmqModuleOptions {
   name: string;
@@ -11,10 +11,10 @@ interface RmqModuleOptions {
   providers: [RabbitMQService],
   exports: [RabbitMQService],
 })
-export class RmqModule {
+export class RabbitMQModule {
   static register({ name }: RmqModuleOptions): DynamicModule {
     return {
-      module: RmqModule,
+      module: RabbitMQModule,
       imports: [
         ClientsModule.registerAsync([
           {
