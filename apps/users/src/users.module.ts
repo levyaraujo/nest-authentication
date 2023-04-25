@@ -7,7 +7,7 @@ import {
   DatabaseModule,
   ImageModule,
   ImageService,
-  RmqModule,
+  RabbitMQModule,
 } from '@app/common';
 import * as Joi from 'joi';
 import { UsersRepository } from './users.repository';
@@ -31,7 +31,7 @@ import { AvatarRepository } from './avatar.repository';
     DatabaseModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Avatar.name, schema: AvatarSchema }]),
-    RmqModule.register({
+    RabbitMQModule.register({
       name: EMAIL_SERVICE,
     }),
     ImageModule,
