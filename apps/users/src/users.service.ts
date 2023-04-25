@@ -21,6 +21,7 @@ import {
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
 import { AvatarRepository } from './avatar.repository';
+import { Readable } from 'stream';
 
 @Injectable()
 export class UsersService {
@@ -88,11 +89,17 @@ export class UsersService {
     if (!avatar) {
       throw new AvatarNotFoundException();
     }
-    const base64Image = avatar.base64;
 
-    const imageBuffer = Buffer.from(base64Image, 'base64');
+    const base64Image = avatar.base64;
+    const imageStream = new Readable({
+      read() {
+        this.push(Buffer.from(base64Image, 'base64'));
+        this.push(null);
+      },
+    });
+
     res.set('Content-Type', 'image/png');
-    res.send(imageBuffer);
+    imageStream.pipe(res);
 
     return {
       message: 'User avatar retrieved successfully',
