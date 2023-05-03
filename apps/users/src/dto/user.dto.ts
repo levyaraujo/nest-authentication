@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MinLength } from 'class-validator';
 
 export class IncomingUserDto {
   @IsString()
@@ -12,6 +12,10 @@ export class IncomingUserDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
 
   avatar: Express.Multer.File;
 }

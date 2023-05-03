@@ -2,8 +2,10 @@ import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEmail,
+  IsNotEmpty,
   IsNumber,
   IsString,
+  IsStrongPassword,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
@@ -17,6 +19,10 @@ export class UserCreatedDTO {
 
   @IsEmail()
   email: string;
+
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
 
   @IsNumber()
   id: number;

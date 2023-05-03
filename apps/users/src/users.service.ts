@@ -22,6 +22,7 @@ import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
 import { AvatarRepository } from './avatar.repository';
 import { Avatar } from './schemas/avatar.schema';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -40,11 +41,12 @@ export class UsersService {
     avatar: Express.Multer.File,
   ): Promise<UserCreatedDTO> {
     await this.checkUserExistsByEmail(newUser.email);
-    const { firstName, lastName, email } = newUser;
+    const { firstName, lastName, email, password } = newUser;
     const userResponse: UserCreatedDTO = await this.apiService.post({
       firstName,
       lastName,
       email,
+      password
     });
     try {
       const avatarData = await this.imageService.saveUserAvatar(avatar);
@@ -61,8 +63,15 @@ export class UsersService {
     user: UserCreatedDTO,
     avatarData: { base64: string; filename: string },
   ): Promise<void> {
+    const salt = await bcrypt.genSalt(10);
+    console.log(user);
+    console.log(salt);
+    const password = await bcrypt.hash(user.password, salt);
     const userObject = { ...user };
-    await this.usersRepository.create(userObject);
+    await this.usersRepository.create({
+      ...userObject,
+      password
+    });
     await this.avatarRepository.create({ user: user.id, ...avatarData });
   }
 
