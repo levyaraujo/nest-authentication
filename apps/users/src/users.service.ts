@@ -10,13 +10,10 @@ import { UsersRepository } from './users.repository';
 import { IMAGE_FOLDER } from './constants/paths';
 import * as fs from 'fs';
 import {
-  ApiService,
   AvatarNotFoundException,
-  GetUserResponse,
   ImageService,
   RabbitMQService,
   UserAlreadyExistsException,
-  UserCreatedDTO,
 } from '@app/common';
 import { SuccessResponseDto } from './dto/responses.dto';
 import { Response } from 'express';
@@ -30,29 +27,19 @@ export class UsersService {
     private readonly imageService: ImageService,
     private readonly usersRepository: UsersRepository,
     private readonly avatarRepository: AvatarRepository,
-    private readonly apiService: ApiService,
     private readonly rabbitService: RabbitMQService,
   ) {}
 
   private logger = new Logger(UsersService.name);
 
-  async createUser(
-    newUser: IncomingUserDto,
-    avatar: Express.Multer.File,
-  ): Promise<UserCreatedDTO> {
+  async createUser(newUser: IncomingUserDto, avatar: Express.Multer.File) {
     await this.checkUserExistsByEmail(newUser.email);
     const { firstName, lastName, email, password } = newUser;
-    const userResponse: UserCreatedDTO = await this.apiService.post({
-      firstName,
-      lastName,
-      email,
-      password
-    });
     try {
       const avatarData = await this.imageService.saveUserAvatar(avatar);
-      await this.saveUserAndAvatar(userResponse, avatarData);
+      await this.saveUserAndAvatar(newUser, avatarData);
       await this.rabbitService.sendRabbitMQMessage(email, firstName);
-      return userResponse;
+      return newUser;
     } catch (err) {
       this.logger.error(err);
       throw new InternalServerErrorException(err);
@@ -60,7 +47,7 @@ export class UsersService {
   }
 
   private async saveUserAndAvatar(
-    user: UserCreatedDTO,
+    user: any,
     avatarData: { base64: string; filename: string },
   ): Promise<void> {
     const salt = await bcrypt.genSalt(10);
@@ -70,7 +57,7 @@ export class UsersService {
     const userObject = { ...user };
     await this.usersRepository.create({
       ...userObject,
-      password
+      password,
     });
     await this.avatarRepository.create({ user: user.id, ...avatarData });
   }
@@ -79,13 +66,6 @@ export class UsersService {
     const user = await this.usersRepository.findOne({ email });
     if (user) {
       throw new UserAlreadyExistsException();
-    }
-  }
-
-  async getUser(id: string): Promise<GetUserResponse> {
-    const data = this.apiService.get(id);
-    if (data) {
-      return data;
     }
   }
 

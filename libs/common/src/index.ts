@@ -7,6 +7,4 @@ export * from './images/image.service';
 export * from './images/image.module';
 export * from './exceptions/conflict';
 export * from './exceptions/notFound';
-export * from './api/api.service';
-export * from './api/dto/responses.dto';
 export * from './rmq/constants/services';

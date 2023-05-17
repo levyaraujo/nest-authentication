@@ -7,7 +7,6 @@ import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { userStub } from './stubs/user.stub';
 import { UsersService } from '../src/users.service';
 import {
-  ApiService,
   AvatarNotFoundException,
   DatabaseModule,
   EMAIL_SERVICE,
@@ -15,7 +14,6 @@ import {
   ImageService,
   RabbitMQService,
   RabbitMQModule,
-  UserNotFoundException,
 } from '@app/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
@@ -78,7 +76,6 @@ describe('UsersController', () => {
         },
         UsersRepository,
         AvatarRepository,
-        ApiService,
         ImageService,
       ],
     }).compile();
@@ -115,12 +112,6 @@ describe('UsersController', () => {
     it('should return a user json, specified by id 2', async () => {
       const retrievedUser = await usersController.getUser('2');
       expect(retrievedUser).toEqual(expectedResponseId2);
-    });
-
-    it('should throw a UserNotFoundException', async () => {
-      await expect(usersController.getUser('1000')).rejects.toThrow(
-        UserNotFoundException,
-      );
     });
   });
 

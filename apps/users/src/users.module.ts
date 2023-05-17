@@ -3,11 +3,10 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { ConfigModule } from '@nestjs/config';
 import {
-  ApiService,
   DatabaseModule,
   ImageModule,
   ImageService,
-  RmqModule,
+  RabbitMQModule,
 } from '@app/common';
 import * as Joi from 'joi';
 import { UsersRepository } from './users.repository';
@@ -31,19 +30,13 @@ import { AvatarRepository } from './avatar.repository';
     DatabaseModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Avatar.name, schema: AvatarSchema }]),
-    RmqModule.register({
+    RabbitMQModule.register({
       name: EMAIL_SERVICE,
     }),
     ImageModule,
     HttpModule,
   ],
   controllers: [UsersController],
-  providers: [
-    UsersService,
-    UsersRepository,
-    AvatarRepository,
-    ImageService,
-    ApiService,
-  ],
+  providers: [UsersService, UsersRepository, AvatarRepository, ImageService],
 })
 export class UsersModule {}

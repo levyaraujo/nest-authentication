@@ -15,7 +15,6 @@ import { UsersService } from './users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IncomingUserDto } from './dto/user.dto';
 import { Response } from 'express';
-import { GetUserResponse, UserCreatedDTO } from '@app/common';
 
 @Controller('api/')
 export class UsersController {
@@ -36,13 +35,8 @@ export class UsersController {
         }),
     )
     avatar: Express.Multer.File,
-  ): Promise<UserCreatedDTO> {
+  ) {
     return this.usersService.createUser(user, avatar);
-  }
-
-  @Get('user/:id')
-  async getUser(@Param('id') id: string): Promise<GetUserResponse> {
-    return this.usersService.getUser(id);
   }
 
   @Get('user/:id/avatar')
